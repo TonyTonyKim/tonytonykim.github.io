@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tony's 2026 World Journey</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: #07111f;
+      color: #f5f7fb;
+    }
+    .hero {
+      padding: 72px 20px 54px;
+      text-align: center;
+      background: radial-gradient(circle at 50% 30%, #17345d 0, #0b1c31 38%, #07111f 74%);
+    }
+    .eyebrow {
+      color: #86b9ff;
+      letter-spacing: .18em;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 14px 0 12px;
+      font-size: clamp(44px, 8vw, 88px);
+      line-height: .95;
+      letter-spacing: -3px;
+    }
+    .sub { color: #a9b9ce; font-size: 18px; }
+    .route {
+      margin: 36px auto 0;
+      max-width: 1100px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .city-pill {
+      background: #0f2036;
+      border: 1px solid #2f4b6b;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .plane { opacity: .75; }
+    .stats {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 26px 20px 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .stat, .trip {
+      background: #0d1d31;
+      border: 1px solid #243b57;
+      border-radius: 18px;
+    }
+    .stat { padding: 22px; }
+    .num { font-size: 32px; font-weight: 800; }
+    .label { color: #8fa4bd; margin-top: 5px; font-size: 14px; }
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px 20px 80px;
+    }
+    h2 { font-size: 32px; margin: 28px 0 18px; }
+    .timeline { display: grid; gap: 14px; }
+    .trip {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 22px;
+    }
+    .date {
+      color: #7eb7ff;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .place { font-size: 24px; font-weight: 800; }
+    .country { color: #95a9c1; margin-top: 5px; }
+    .days {
+      font-size: 14px;
+      background: #142944;
+      border: 1px solid #2b4664;
+      padding: 8px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .hint {
+      margin-top: 34px;
+      padding: 18px 20px;
+      border-left: 3px solid #6aa8ff;
+      background: #0a1829;
+      color: #9eb0c6;
+      line-height: 1.6;
+    }
+    footer { text-align: center; color: #61748a; padding: 32px; }
+    @media (max-width: 720px) {
+      h1 { letter-spacing: -1px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .trip { grid-template-columns: 1fr; }
+      .days { justify-self: start; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="eyebrow">2026 TRAVEL ARCHIVE</div>
+    <h1>TONY'S<br>WORLD JOURNEY</h1>
+    <div class="sub">One year, one timeline, many cities.</div>
+    <div class="route" id="route"></div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="num" id="tripCount">0</div><div class="label">Trips</div></div>
+    <div class="stat"><div class="num" id="cityCount">0</div><div class="label">Cities</div></div>
+    <div class="stat"><div class="num" id="countryCount">0</div><div class="label">Countries / regions</div></div>
+    <div class="stat"><div class="num" id="dayCount">0</div><div class="label">Travel days</div></div>
+  </section>
+
+  <main>
+    <h2>Journey Timeline</h2>
+    <div class="timeline" id="timeline"></div>
+
+    <div class="hint">
+      앞으로 여행 일정을 바꾸고 싶으면 <b>travel-data.js</b>만 수정하면 됩니다.
+      index.html은 디자인과 자동 계산을 담당하므로 평소에는 건드리지 않아도 됩니다.
+    </div>
+  </main>
+
+  <footer>TONY · 2026 WORLD JOURNEY</footer>
+
+  <script src="travel-data.js"></script>
+  <script>
+    const sortedTrips = [...trips].sort((a, b) => a.start.localeCompare(b.start));
+
+    function parseDate(s) {
+      const [y,m,d] = s.split("-").map(Number);
+      return new Date(Date.UTC(y, m-1, d));
+    }
+
+    function daysInclusive(start, end) {
+      return Math.round((parseDate(end) - parseDate(start)) / 86400000) + 1;
+    }
+
+    function shortDate(s) {
+      const d = parseDate(s);
+      return new Intl.DateTimeFormat("en", {month:"short", day:"numeric", timeZone:"UTC"}).format(d).toUpperCase();
+    }
+
+    const route = document.getElementById("route");
+    sortedTrips.forEach((trip, i) => {
+      const pill = document.createElement("span");
+      pill.className = "city-pill";
+      pill.textContent = `${trip.flag} ${trip.city}`;
+      route.appendChild(pill);
+      if (i < sortedTrips.length - 1) {
+        const plane = document.createElement("span");
+        plane.className = "plane";
+        plane.textContent = "✈";
+        route.appendChild(plane);
+      }
+    });
+
+    const timeline = document.getElementById("timeline");
+    sortedTrips.forEach(trip => {
+      const el = document.createElement("article");
+      el.className = "trip";
+      const days = daysInclusive(trip.start, trip.end);
+      el.innerHTML = `
+        <div class="date">${shortDate(trip.start)}<br>→ ${shortDate(trip.end)}</div>
+        <div>
+          <div class="place">${trip.flag} ${trip.city}</div>
+          <div class="country">${trip.country}</div>
+        </div>
+        <div class="days">${days} days</div>
+      `;
+      timeline.appendChild(el);
+    });
+
+    document.getElementById("tripCount").textContent = sortedTrips.length;
+    document.getElementById("cityCount").textContent = new Set(sortedTrips.map(t => t.city)).size;
+    document.getElementById("countryCount").textContent = new Set(sortedTrips.map(t => t.country)).size;
+    document.getElementById("dayCount").textContent = sortedTrips.reduce((sum, t) => sum + daysInclusive(t.start, t.end), 0);
+  </script>
+</body>
+</html>
